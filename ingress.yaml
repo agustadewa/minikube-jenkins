@@ -1,0 +1,66 @@
+# INGRESS
+
+kind: Ingress
+apiVersion: networking.k8s.io/v1
+metadata:
+  annotations:
+    kubernets.io/ingress.class: "nginx"
+  name: main-ingress
+spec:
+  defaultBackend:
+    service:
+      name: nginx
+      port:
+        number: 80
+  rules:
+    - host: y.test
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: main-web-svc
+                port:
+                  number: 80
+
+---
+
+# SERVICE
+
+kind: Service
+apiVersion: v1
+metadata:
+  name: main-web-svc
+spec:
+  selector:
+    app:
+      main-web
+  type: NodePort
+  ports:
+    - port: 80
+      targetPort: 8080
+
+---
+
+# DEPLOYMENT
+
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: main-web-dpl
+spec:
+  selector:
+    matchLabels:
+      app: main-web
+  template:
+    metadata:
+      name: main-web
+      labels:
+        app: main-web
+    spec:
+      containers:
+        - name: main-web
+          image: gcr.io/google-samples/hello-app:1.0
+          ports:
+            - containerPort: 8080
